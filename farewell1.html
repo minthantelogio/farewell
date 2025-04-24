@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 Event Hero: Save the Campaign!</title>
+  <style>
+    :root {
+      --primary-color: #4a6bff;
+      --secondary-color: #ff6b6b;
+      --accent-color: #6bff6b;
+      --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      --ground-color: #5d4037;
+      --text-color: #2d3436;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --player-size: 70px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--background-gradient);
+      color: var(--text-color);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #gameUI {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    #score, #highScore {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      box-shadow: var(--shadow);
+    }
+
+    #player {
+      width: var(--player-size);
+      height: var(--player-size);
+      background: url('https://emojicdn.elk.sh/🧍‍♂️?style=google') no-repeat center/contain;
+      position: absolute;
+      bottom: 30px;
+      left: 50px;
+      z-index: 5;
+      transition: transform 0.1s;
+    }
+
+    .item, .obstacle {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      background-size: contain;
+      background-repeat: no-repeat;
+      z-index: 4;
+      transition: transform 0.1s;
+    }
+
+    #ground {
+      position: absolute;
+      bottom: 0;
+      height: 30px;
+      width: 100%;
+      background: var(--ground-color);
+      z-index: 3;
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    #startScreen, #gameOverScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      color: white;
+      text-align: center;
+    }
+
+    #gameOverScreen {
+      display: none;
+    }
+
+    .screen-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 400px;
+      color: var(--text-color);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+    }
+
+    p {
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: var(--shadow);
+    }
+
+    button:hover {
+      background: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+
+    .particle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    @keyframes jump {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .jump-animation {
+      animation: jump 0.5s ease;
+    }
+
+    .collect-animation {
+      transform: scale(1.5);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+<div id="gameContainer">
+  <div id="gameUI">
+    <div id="score">Score: 0</div>
+    <div id="highScore">High Score: 0</div>
+  </div>
+  
+  <div id="player"></div>
+  <div id="ground"></div>
+  
+  <div id="startScreen">
+    <div class="screen-content">
+      <h1>Event Hero</h1>
+      <p>Help Reyme collect event items and avoid obstacles to save the campaign!</p>
+      <p>Press SPACE to jump and collect the good items (🎤, 📦, ✅) while avoiding the bad ones (🐢, 📉, 💤).</p>
+      <button id="startButton">Start Game</button>
+    </div>
+  </div>
+  
+  <div id="gameOverScreen">
+    <div class="screen-content">
+      <h1>Game Over!</h1>
+      <p id="finalScore">Your score: 0</p>
+      <p id="newHighScore" style="display: none; color: var(--accent-color); font-weight: bold;">New High Score! 🎉</p>
+      <button id="restartButton">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Game elements
+  const player = document.getElementById('player');
+  const gameContainer = document.getElementById('gameContainer');
+  const scoreDisplay = document.getElementById('score');
+  const highScoreDisplay = document.getElementById('highScore');
+  const startScreen = document.getElementById('startScreen');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const finalScoreDisplay = document.getElementById('finalScore');
+  const newHighScoreDisplay = document.getElementById('newHighScore');
+  const startButton = document.getElementById('startButton');
+  const restartButton = document.getElementById('restartButton');
+  
+  // Game variables
+  let score = 0;
+  let highScore = localStorage.getItem('highScore') || 0;
+  let jumping = false;
+  let gameRunning = false;
+  let gameSpeed = 5;
+  let spawnRate = 1300;
+  let gameInterval;
+  
+  // Initialize high score display
+  highScoreDisplay.textContent = `High Score: ${highScore}`;
+  
+  // Cloud generation
+  function createClouds() {
+    for (let i = 0; i < 5; i++) {
+      const cloud = document.createElement('div');
+      cloud.classList.add('cloud');
+      
+      const size = Math.random() * 60 + 40;
+      const left = Math.random() * window.innerWidth;
+      const top = Math.random() * (window.innerHeight / 3);
+      const opacity = Math.random() * 0.5 + 0.3;
+      
+      cloud.style.width = `${size}px`;
+      cloud.style.height = `${size / 2}px`;
+      cloud.style.left = `${left}px`;
+      cloud.style.top = `${top}px`;
+      cloud.style.opacity = opacity;
+      
+      gameContainer.appendChild(cloud);
+    }
+  }
+  
+  // Jumping mechanics
+  function jump() {
+    if (!jumping && gameRunning) {
+      jumping = true;
+      player.classList.add('jump-animation');
+      
+      setTimeout(() => {
+        player.classList.remove('jump-animation');
+        jumping = false;
+      }, 500);
+    }
+  }
+  
+  // Keyboard controls
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      jump();
+    }
+  });
+  
+  // Touch controls for mobile
+  document.addEventListener('touchstart', (e) => {
+    if (gameRunning) {
+      e.preventDefault();
+      jump();
+    }
+  });
+  
+  // Create particles for collection effect
+  function createParticles(x, y, color, count = 10) {
+    for (let i = 0; i < count; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.backgroundColor = color;
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+      
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = Math.random() * 5 + 2;
+      const size = Math.random() * 8 + 4;
+      
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      
+      gameContainer.appendChild(particle);
+      
+      let posX = x;
+      let posY = y;
+      let opacity = 1;
+      
+      const moveParticle = setInterval(() => {
+        posX += Math.cos(angle) * velocity;
+        posY += Math.sin(angle) * velocity;
+        opacity -= 0.03;
+        
+        particle.style.left = `${posX}px`;
+        particle.style.top = `${posY}px`;
+        particle.style.opacity = opacity;
+        
+        if (opacity <= 0) {
+          clearInterval(moveParticle);
+          particle.remove();
+        }
+      }, 30);
+    }
+  }
+  
+  // Spawn items and obstacles
+  function spawnItemOrObstacle() {
+    if (!gameRunning) return;
+    
+    const isItem = Math.random() < 0.6;
+    const el = document.createElement('div');
+    const leftStart = window.innerWidth;
+    const type = isItem ? 'item' : 'obstacle';
+    
+    el.classList.add(type);
+    
+    if (isItem) {
+      const emojiOptions = ['🎤','📦','✅','🧠','📣'];
+      const emoji = emojiOptions[Math.floor(Math.random() * emojiOptions.length)];
+      el.style.backgroundImage = `url('https://emojicdn.elk.sh/${encodeURIComponent(emoji)}?style=google')`;
+    } else {
+      const badEmoji = ['🐢','📉','💤'];
+      const emoji = badEmoji[Math.floor(Math.random() * badEmoji.length)];
+      el.style.backgroundImage = `url('https://emojicdn.elk.sh/${encodeURIComponent(emoji)}?style=google')`;
+    }
+    
+    el.style.left = leftStart + 'px';
+    el.style.top = 'calc(100% - 80px)';
+    gameContainer.appendChild(el);
+    
+    let move = setInterval(() => {
+      if (!gameRunning) {
+        clearInterval(move);
+        return;
+      }
+      
+      const playerRect = player.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      
+      el.style.left = (parseInt(el.style.left) - gameSpeed) + 'px';
+      
+      // Collision detection
+      if (
+        elRect.left < playerRect.right &&
+        elRect.right > playerRect.left &&
+        elRect.bottom > playerRect.top &&
+        elRect.top < playerRect.bottom
+      ) {
+        if (el.classList.contains('item')) {
+          // Collect item
+          score += 10;
+          scoreDisplay.textContent = `Score: ${score}`;
+          el.classList.add('collect-animation');
+          createParticles(
+            elRect.left + elRect.width / 2,
+            elRect.top + elRect.height / 2,
+            '#4CAF50'
+          );
+          
+          // Increase difficulty
+          if (score % 50 === 0) {
+            gameSpeed += 0.5;
+            spawnRate = Math.max(500, spawnRate - 50);
+          }
+          
+          setTimeout(() => el.remove(), 300);
+        } else {
+          // Hit obstacle
+          gameOver();
+        }
+        clearInterval(move);
+      }
+      
+      if (parseInt(el.style.left) < -50) {
+        el.remove();
+        clearInterval(move);
+      }
+    }, 30);
+  }
+  
+  // Game over function
+  function gameOver() {
+    gameRunning = false;
+    clearInterval(gameInterval);
+    
+    // Check for high score
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('highScore', highScore);
+      highScoreDisplay.textContent = `High Score: ${highScore}`;
+      newHighScoreDisplay.style.display = 'block';
+    }
+    
+    finalScoreDisplay.textContent = `Your score: ${score}`;
+    gameOverScreen.style.display = 'flex';
+  }
+  
+  // Start game function
+  function startGame() {
+    // Reset game state
+    score = 0;
+    gameSpeed = 5;
+    spawnRate = 1300;
+    scoreDisplay.textContent = `Score: ${score}`;
+    newHighScoreDisplay.style.display = 'none';
+    
+    // Clear existing items
+    document.querySelectorAll('.item, .obstacle').forEach(el => el.remove());
+    
+    // Hide screens
+    startScreen.style.display = 'none';
+    gameOverScreen.style.display = 'none';
+    
+    // Start game
+    gameRunning = true;
+    gameInterval = setInterval(spawnItemOrObstacle, spawnRate);
+  }
+  
+  // Event listeners for buttons
+  startButton.addEventListener('click', startGame);
+  restartButton.addEventListener('click', startGame);
+  
+  // Initialize game
+  createClouds();
+</script>
+
+</body>
+</html>
