@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎉 Farewell Reyme!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Fredoka', sans-serif;
+      background: radial-gradient(circle at top, #ffe6f0, #e6f7ff);
+      overflow-x: hidden;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 1rem;
+      color: #ff4d6d;
+      text-shadow: 2px 2px #fff;
+      animation: bounce 2s infinite;
+    }
+
+    .message-box {
+      background-color: #ffffffd9;
+      margin: 1rem auto;
+      padding: 2rem;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 700px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      font-size: 1.2rem;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .signature {
+      margin-top: 2rem;
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .made-by {
+      margin: 2rem 0;
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Coffee Game Styles */
+    .game-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      margin: 2rem auto;
+      max-width: 1200px;
+    }
+
+    .game-box {
+      background: white;
+      border-radius: 20px;
+      padding: 1rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .game-title {
+      font-size: 1.5rem;
+      margin: 0.5rem 0;
+      color: #2d3748;
+    }
+
+    #coffee-game {
+      border: 3px dashed #888;
+      background: #fff9c4;
+      width: 300px;
+      height: 400px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+    }
+
+    #cup {
+      width: 40px;
+      position: absolute;
+      bottom: 0;
+      left: 130px;
+      transition: left 0.1s;
+    }
+
+    .coffee {
+      position: absolute;
+      width: 30px;
+      top: 0;
+    }
+
+    .score {
+      font-size: 1.5rem;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+
+    /* Memory Game Styles */
+    #memory-game {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 300px;
+      margin: 0 auto;
+    }
+
+    .memory-card {
+      height: 70px;
+      background: #ffdd59;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.5s;
+    }
+
+    .memory-card.flipped {
+      transform: rotateY(180deg);
+      background: white;
+    }
+
+    /* Typing Game Styles */
+    #typing-game {
+      width: 300px;
+      margin: 0 auto;
+    }
+
+    #typing-display {
+      font-size: 1.5rem;
+      margin: 1rem 0;
+      min-height: 60px;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    #typing-input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .game-instructions {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 0.5rem 0;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti"></canvas>
+
+  <h1>🎉 Farewell, Reyme! 🎉</h1>
+
+  <div class="message-box">
+    Hey Reyme,<br><br>
+    We still can't believe you're leaving! Who's going to debug our issues with just a sigh and a smile now? 😅<br><br>
+    Your calm vibes, random jokes, and surprise coffee runs will be sorely missed (seriously, who's bringing Starbucks now?)<br><br>
+    Wherever you go, we know you'll shine — just don't forget us when you're ruling the IT world out there!<br><br>
+    Here are some games to remember us by!<br>
+    <div class="signature">Cheers,<br>Min</div>
+  </div>
+
+  <div class="game-container">
+    <!-- Coffee Game -->
+    <div class="game-box">
+      <div class="game-title">☕ Coffee Catcher</div>
+      <div class="game-instructions">Use ← → arrows to catch falling coffees!</div>
+      <div class="score" id="coffee-score">Score: 0</div>
+      <div id="coffee-game">
+        <img src="https://emojicdn.elk.sh/☕" id="cup" alt="cup">
+      </div>
+    </div>
+
+    <!-- Memory Game -->
+    <div class="game-box">
+      <div class="game-title">🧠 Memory Match</div>
+      <div class="game-instructions">Find all matching pairs of emojis!</div>
+      <div class="score" id="memory-score">Matches: 0/8</div>
+      <div id="memory-game"></div>
+    </div>
+
+    <!-- Typing Game -->
+    <div class="game-box">
+      <div class="game-title">⌨️ Typing Challenge</div>
+      <div class="game-instructions">Type the words as fast as you can!</div>
+      <div class="score" id="typing-score">Score: 0</div>
+      <div id="typing-game">
+        <div id="typing-display">Ready...</div>
+        <input type="text" id="typing-input" placeholder="Type here...">
+      </div>
+    </div>
+  </div>
+
+  <div class="made-by">Made with 💖 and JavaScript — by Min</div>
+
+  <script>
+    // Confetti
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const pieces = Array.from({ length: 150 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      size: Math.random() * 8 + 2,
+      color: ['#fcbf49', '#ff6b81', '#4dd599', '#70a1ff', '#ffdd59'][Math.floor(Math.random() * 5)],
+      speed: Math.random() * 3 + 1
+    }));
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of pieces) {
+        p.y += p.speed;
+        if (p.y > canvas.height) {
+          p.y = -10;
+          p.x = Math.random() * canvas.width;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+      requestAnimationFrame(drawConfetti);
+    }
+    drawConfetti();
+
+    // Coffee Game
+    const coffeeGame = document.getElementById('coffee-game');
+    const cup = document.getElementById('cup');
+    let coffeeScore = 0;
+
+    document.addEventListener('keydown', (e) => {
+      const cupLeft = parseInt(getComputedStyle(cup).left);
+      if (e.key === 'ArrowLeft' && cupLeft > 0) cup.style.left = `${cupLeft - 20}px`;
+      if (e.key === 'ArrowRight' && cupLeft < 260) cup.style.left = `${cupLeft + 20}px`;
+    });
+
+    function dropCoffee() {
+      const coffee = document.createElement('img');
+      coffee.src = "https://emojicdn.elk.sh/🧋";
+      coffee.className = 'coffee';
+      coffee.style.left = Math.random() * 270 + 'px';
+      coffeeGame.appendChild(coffee);
+
+      let top = 0;
+      const fall = setInterval(() => {
+        top += 5;
+        coffee.style.top = top + 'px';
+
+        const coffeeRect = coffee.getBoundingClientRect();
+        const cupRect = cup.getBoundingClientRect();
+
+        if (
+          coffeeRect.bottom >= cupRect.top &&
+          coffeeRect.left >= cupRect.left &&
+          coffeeRect.right <= cupRect.right
+        ) {
+          coffeeScore++;
+          document.getElementById('coffee-score').textContent = `Score: ${coffeeScore}`;
+          clearInterval(fall);
+          coffee.remove();
+        }
+
+        if (top > 400) {
+          clearInterval(fall);
+          coffee.remove();
+        }
+      }, 30);
+    }
+
+    setInterval(dropCoffee, 1200);
+
+    // Memory Game
+    const memoryGame = document.getElementById('memory-game');
+    const memoryEmojis = ['☕', '⌨️', '🖥️', '🐛', '🎮', '🍕', '🚀', '🎉'];
+    const memoryCards = [...memoryEmojis, ...memoryEmojis];
+    let flippedCards = [];
+    let matches = 0;
+
+    // Shuffle cards
+    memoryCards.sort(() => Math.random() - 0.5);
+
+    // Create cards
+    memoryCards.forEach((emoji, index) => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.dataset.index = index;
+      card.dataset.emoji = emoji;
+      card.textContent = '❓';
+      card.addEventListener('click', flipCard);
+      memoryGame.appendChild(card);
+    });
+
+    function flipCard() {
+      if (flippedCards.length < 2 && !this.classList.contains('flipped')) {
+        this.classList.add('flipped');
+        this.textContent = this.dataset.emoji;
+        flippedCards.push(this);
+
+        if (flippedCards.length === 2) {
+          checkMatch();
+        }
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      
+      if (card1.dataset.emoji === card2.dataset.emoji) {
+        matches++;
+        document.getElementById('memory-score').textContent = `Matches: ${matches}/8`;
+        flippedCards = [];
+        
+        if (matches === 8) {
+          setTimeout(() => alert('You won! Refresh to play again.'), 500);
+        }
+      } else {
+        setTimeout(() => {
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          card1.textContent = '❓';
+          card2.textContent = '❓';
+          flippedCards = [];
+        }, 1000);
+      }
+    }
+
+    // Typing Game
+    const typingDisplay = document.getElementById('typing-display');
+    const typingInput = document.getElementById('typing-input');
+    let typingScore = 0;
+    let currentWord = '';
+    const words = ['debug', 'coffee', 'code', 'farewell', 'reyme', 'javascript', 'function', 'variable'];
+
+    function newWord() {
+      currentWord = words[Math.floor(Math.random() * words.length)];
+      typingDisplay.textContent = currentWord;
+      typingInput.value = '';
+      typingInput.focus();
+    }
+
+    typingInput.addEventListener('input', () => {
+      if (typingInput.value === currentWord) {
+        typingScore++;
+        document.getElementById('typing-score').textContent = `Score: ${typingScore}`;
+        newWord();
+      }
+    });
+
+    newWord();
+  </script>
+</body>
+</html>
