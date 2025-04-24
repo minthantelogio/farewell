@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farewell Message</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #76c7c0, #c0aaff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #6a5acd;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #483d8b;
+        }
+
+        .end-message {
+            font-size: 1rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <p id="message" class="message"></p>
+        <button id="nextButton" class="btn">Next</button>
+        <p id="endMessage" class="end-message" style="display: none;">End of message 🎉</p>
+    </div>
+
+    <script>
+        const messages = [
+            "Hey Reyme! 👋",
+            "Just wanted to say — working with you has been awesome! 🙌",
+            "Your positive energy made every challenge easier.",
+            "Seriously, You made things look cool. 😎",
+            "You’re moving on to a new chapter, and I know you'll do great things.",
+            "Sending you all the best for what’s next. ✨",
+            "Let’s keep in touch! 📬",
+            "- Min"
+        ];
+
+        let currentIndex = 0;
+        const messageElement = document.getElementById("message");
+        const nextButton = document.getElementById("nextButton");
+        const endMessage = document.getElementById("endMessage");
+
+        function displayMessage() {
+            messageElement.textContent = messages[currentIndex];
+            if (currentIndex === messages.length - 1) {
+                nextButton.style.display = "none";
+                endMessage.style.display = "block";
+            }
+        }
+
+        nextButton.addEventListener("click", () => {
+            if (currentIndex < messages.length - 1) {
+                currentIndex++;
+                displayMessage();
+            }
+        });
+
+        // Initial message
+        displayMessage();
+    </script>
+
+</body>
+</html>
