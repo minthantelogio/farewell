@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jump Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #f0f8ff;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-color: #e0ffff;
+    }
+    .character {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-color: #ff4500;
+      bottom: 0;
+      left: 100px;
+      transition: transform 0.1s;
+    }
+    .item, .obstacle {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      bottom: 0;
+    }
+    .item {
+      background-color: #32cd32;
+    }
+    .obstacle {
+      background-color: #000;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+    }
+    #combo {
+      position: absolute;
+      top: 40px;
+      left: 10px;
+      font-size: 20px;
+      color: #ff1493;
+    }
+    #invincible-bar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 200px;
+      height: 20px;
+      border: 2px solid #555;
+    }
+    #invincible-fill {
+      height: 100%;
+      width: 0;
+      background-color: gold;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div class="character" id="character"></div>
+    <div id="score">Score: 0</div>
+    <div id="combo">Combo: 0</div>
+    <div id="invincible-bar"><div id="invincible-fill"></div></div>
+  </div>
+
+  <script>
+    const container = document.getElementById("game-container");
+    const character = document.getElementById("character");
+    const scoreDisplay = document.getElementById("score");
+    const comboDisplay = document.getElementById("combo");
+    const invBar = document.getElementById("invincible-fill");
+
+    let score = 0;
+    let combo = 0;
+    let isInvincible = false;
+    let invincibleTime = 0;
+    const jumpHeight = 150;
+    let isJumping = false;
+    let velocityY = 0;
+    let gravity = 0.8;
+    let groundY = 0;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !isJumping) {
+        isJumping = true;
+        velocityY = -12;
+      }
+    });
+
+    function updateCharacterPosition() {
+      if (isJumping) {
+        let currentY = parseFloat(getComputedStyle(character).bottom);
+        velocityY += gravity;
+        currentY -= velocityY;
+        if (currentY <= groundY) {
+          currentY = groundY;
+          isJumping = false;
+          velocityY = 0;
+        }
+        character.style.bottom = currentY + "px";
+      }
+    }
+
+    function createItem(type = "item") {
+      const elem = document.createElement("div");
+      elem.classList.add(type);
+      elem.style.left = window.innerWidth + "px";
+      elem.style.bottom = type === "item" ? "0" : "0";
+      container.appendChild(elem);
+
+      let move = setInterval(() => {
+        let left = parseFloat(elem.style.left);
+        if (left < -30) {
+          clearInterval(move);
+          elem.remove();
+        } else {
+          elem.style.left = left - 5 + "px";
+
+          let charRect = character.getBoundingClientRect();
+          let elemRect = elem.getBoundingClientRect();
+
+          if (
+            charRect.left < elemRect.right &&
+            charRect.right > elemRect.left &&
+            charRect.bottom > elemRect.top &&
+            charRect.top < elemRect.bottom
+          ) {
+            if (type === "item") {
+              score++;
+              combo++;
+              invincibleTime += 10;
+              updateDisplays();
+            } else if (type === "obstacle" && !isInvincible) {
+              alert("Game Over! Final Score: " + score);
+              window.location.reload();
+            }
+            elem.remove();
+            clearInterval(move);
+          }
+        }
+      }, 20);
+    }
+
+    function updateDisplays() {
+      scoreDisplay.innerText = "Score: " + score;
+      comboDisplay.innerText = "Combo: " + combo;
+      invBar.style.width = Math.min(invincibleTime, 100) * 2 + "px";
+    }
+
+    function gameLoop() {
+      updateCharacterPosition();
+
+      if (Math.random() < 0.02) createItem("item");
+      if (Math.random() < 0.01) createItem("obstacle");
+
+      if (invincibleTime > 0) {
+        isInvincible = true;
+        invincibleTime -= 0.2;
+      } else {
+        isInvincible = false;
+        invincibleTime = 0;
+      }
+
+      updateDisplays();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
